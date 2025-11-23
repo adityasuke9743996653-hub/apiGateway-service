@@ -1,0 +1,51 @@
+server:
+  port: 9090  # Port for API Gateway
+
+spring:
+  cloud:
+    gateway:
+      routes:
+        - id: appointment-service
+          uri: lb://appointment-service  # Using service discovery with Eureka
+          predicates:
+            - Path=/appointments/**  # Forward requests with this path
+          filters:
+            - AddRequestHeader=Authorization, Bearer #{T(org.springframework.security.oauth2.jwt.JwtDecoder).decode('your-jwt-token-here')}
+
+        - id: patient-service
+          uri: lb://patient-service  # Using service discovery with Eureka
+          predicates:
+            - Path=/patients/**  # Forward requests with this path
+          filters:
+            - AddRequestHeader=Authorization, Bearer #{T(org.springframework.security.oauth2.jwt.JwtDecoder).decode('your-jwt-token-here')}
+        
+        - id: doctor-service
+          uri: lb://doctor-service  # Using service discovery with Eureka
+          predicates:
+            - Path=/doctors/**  # Forward requests with this path
+          filters:
+            - AddRequestHeader=Authorization, Bearer #{T(org.springframework.security.oauth2.jwt.JwtDecoder).decode('your-jwt-token-here')}
+
+        - id: ui-service
+          uri: lb://ui-service  # Using service discovery with Eureka
+          predicates:
+            - Path=/**  # Forward requests with this path
+          filters:
+            - AddRequestHeader=Authorization, Bearer #{T(org.springframework.security.oauth2.jwt.JwtDecoder).decode('your-jwt-token-here')}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          keycloak:
+            client-id: api-gateway-client
+            client-secret: UiPlxdiu4jVszVY7jv5mxY63sMpPakgP
+            authorization-grant-type: authorization_code
+            redirect-uri: http://localhost:8080/login/oauth2/code/keycloak
+            scope: openid, profile, email
+        provider:
+          keycloak:
+            issuer-uri: http://localhost:8080/realms/hms-realm
+  application:
+    name: APIGATEWAY-SERVICE
+
